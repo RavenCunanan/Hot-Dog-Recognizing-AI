@@ -1,0 +1,116 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hot dog or Not Hot dog?</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .result-container {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .result-item {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+        }
+        .label {
+            font-weight: bold;
+        }
+        .score {
+            color: #1e90ff; /* Adjust color as needed */
+        }
+        .image-container {
+            margin-top: 20px;
+        }
+        .uploaded-image {
+            max-width: 100%;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Hot dog or Not Hot dog?</h1>
+    <form id="uploadForm" method="post" action="{{ url_for('upload') }}" enctype="multipart/form-data">
+        <input type="file" name="file1" id="file1">
+        <input type="submit" value="Submit">
+    </form>
+
+    <div id="results" class="result-container" style="display: none;">
+        <!-- Results will be inserted here -->
+    </div>
+
+    <div id="imagePreview" class="image-container" style="display: none;">
+        <!-- Uploaded image will be inserted here -->
+    </div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent form submission
+
+            // Get form data
+            let formData = new FormData();
+            formData.append('file1', document.getElementById('file1').files[0]);
+
+            // Send POST request to server
+            fetch("{{ url_for('upload') }}", {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Display results
+                displayResults(data);
+                // Display uploaded image
+                displayImage(formData.get('file1'));
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        function displayResults(results) {
+            let resultsContainer = document.getElementById('results');
+            resultsContainer.innerHTML = ''; // Clear previous results
+
+            results.forEach(result => {
+                let resultItem = document.createElement('div');
+                resultItem.classList.add('result-item');
+
+                let label = document.createElement('p');
+                label.classList.add('label');
+                label.textContent = result.label;
+
+                let score = document.createElement('p');
+                score.classList.add('score');
+                score.textContent = `Score: ${(result.score * 100).toFixed(2)}%`;
+
+                resultItem.appendChild(label);
+                resultItem.appendChild(score);
+                resultsContainer.appendChild(resultItem);
+            });
+
+            resultsContainer.style.display = 'block'; // Show results container
+        }
+
+        function displayImage(file) {
+            let imageContainer = document.getElementById('imagePreview');
+            imageContainer.innerHTML = ''; // Clear previous image
+
+            let uploadedImage = document.createElement('img');
+            uploadedImage.classList.add('uploaded-image');
+            uploadedImage.src = URL.createObjectURL(file);
+            uploadedImage.alt = 'Uploaded Image';
+
+            imageContainer.appendChild(uploadedImage);
+            imageContainer.style.display = 'block'; // Show image container
+        }
+    </script>
+</body>
+</html>
